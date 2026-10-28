@@ -41,10 +41,13 @@ button{cursor:pointer}.swatch{height:36px;width:36px;border-radius:50%;border:2p
 <div class="group"><div class="label">PRECIO DE EJEMPLO</div><div class="total" id="price">$100.000 COP</div><p class="note">Precio provisional. Confirmaremos los valores reales antes de vender.</p></div>
 <a class="cta" id="order" href="#" target="_blank" rel="noopener">RESUMIR MI DISEÑO ↗</a>
 <p class="note" id="summary" aria-live="polite">Gorra negra · Sin estampado · Sin taches</p></section></div></main>
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.165.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.165.0/examples/jsm/"}}
+</script>
 <script type="module">
-import * as THREE from 'https://unpkg.com/three@0.165.0/build/three.module.js';
-import {OrbitControls} from 'https://unpkg.com/three@0.165.0/examples/jsm/controls/OrbitControls.js';
-import {GLTFLoader} from 'https://unpkg.com/three@0.165.0/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 const $=id=>document.getElementById(id), canvas=$('viewer');
 const scene=new THREE.Scene();scene.background=new THREE.Color('#151515');
 const camera=new THREE.PerspectiveCamera(35,1,.01,1000);camera.position.set(0,.3,4);
