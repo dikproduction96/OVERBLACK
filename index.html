@@ -1,110 +1,67 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OVRBLK CUSTOM LAB</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#050505;color:#fff;font-family:Arial,Helvetica,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:#050505;color:#fff;font-family:Arial,Helvetica,sans-serif}
 header{padding:24px 6%;border-bottom:1px solid #252525;letter-spacing:4px;font-weight:900}
-main{max-width:1050px;margin:auto;padding:35px 20px}
-.tag{font-size:10px;letter-spacing:3px;color:#999}
-h1{font-size:clamp(32px,6vw,58px);line-height:.95;margin:12px 0}
-.layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:28px}
-.preview{background:radial-gradient(ellipse,#292929,#101010 70%);min-height:300px;display:grid;place-items:center;border:1px solid #292929}
-svg{width:100%;max-width:340px}
-.panel{border:1px solid #292929;padding:22px;background:#101010}
-.group{margin-bottom:25px}
-.label{font-size:10px;letter-spacing:2px;color:#aaa;margin-bottom:12px}
-.options{display:flex;gap:10px;flex-wrap:wrap}
-button{cursor:pointer}
-.swatch{height:36px;width:36px;border-radius:50%;border:2px solid #777}
-.swatch[aria-pressed=true]{outline:2px solid white;outline-offset:3px}
-.option{background:#111;color:white;border:1px solid #555;padding:12px;font-size:11px}
-.option[aria-pressed=true]{background:#fff;color:#000;border-color:#fff}
-.total{font-size:28px;font-weight:900}
-.cta{display:block;width:100%;background:#fff;color:#000;padding:16px;text-align:center;text-decoration:none;font-size:12px;font-weight:900;letter-spacing:2px;border:1px solid #fff}
-.note{font-size:11px;color:#999;line-height:1.6;margin-top:14px}
-@media(max-width:650px){.layout{grid-template-columns:1fr}main{padding:25px 16px}.preview{min-height:260px}}
-</style>
-</head>
-<body>
-<header>OVRBLK / CUSTOM LAB</header>
-<main>
-<div class="tag">TU IDEA. NUESTRAS MANOS.</div>
-<h1>DISEÑA TU<br>PROPIA GORRA.</h1>
-<p style="color:#aaa;line-height:1.6">Personaliza los detalles y crea una pieza que hable por ti.</p>
-<div class="layout">
-<section>
-<div class="preview">
-<svg viewBox="0 0 320 230" role="img" aria-label="Vista previa ilustrativa de gorra">
-<defs><linearGradient id="capshade" x1="0" x2="1" y1="0" y2="1"><stop id="stop1" offset="0" stop-color="#303030"/><stop id="stop2" offset="1" stop-color="#080808"/></linearGradient></defs>
-<ellipse cx="160" cy="193" rx="115" ry="12" fill="#000" opacity=".5"/>
-<path id="crown" d="M48 151Q54 79 118 53Q160 32 201 57Q253 84 267 150Q195 174 48 151Z" fill="url(#capshade)" stroke="#aaa"/>
-<path id="visor" d="M48 150Q155 166 267 149Q253 187 157 188Q78 183 48 150Z" fill="#111" stroke="#aaa"/>
-<path d="M160 47L160 158M103 63Q123 103 119 158M211 65Q191 104 200 158" stroke="#888" stroke-opacity=".5" fill="none"/>
-<g id="patch" style="display:none"><path d="M133 96H187V130H133Z" fill="#181818" stroke="#ddd"/><text x="160" y="117" font-size="13" text-anchor="middle" fill="#fff" font-weight="900">OVRBLK</text></g>
-<g id="studs" style="display:none" fill="#ddd"><circle cx="93" cy="131" r="4"/><circle cx="109" cy="137" r="4"/><circle cx="125" cy="141" r="4"/><circle cx="207" cy="139" r="4"/><circle cx="224" cy="133" r="4"/></g>
-</svg>
-</div>
-<p class="note">VISTA PREVIA ILUSTRATIVA. La apariencia final se ajustará a los materiales y técnicas de fabricación reales.</p>
-</section>
-<section class="panel">
-<div class="group">
-<div class="label">01 / COLOR</div>
-<div class="options" id="colors">
+main{max-width:1100px;margin:auto;padding:35px 20px}.tag,.label{font-size:10px;letter-spacing:3px;color:#aaa}
+h1{font-size:clamp(32px,6vw,58px);line-height:.95;margin:12px 0}.intro,.note{color:#aaa;line-height:1.6}
+.layout{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;margin-top:28px}
+.preview{position:relative;background:radial-gradient(ellipse,#292929,#101010 70%);height:440px;border:1px solid #292929;overflow:hidden}
+#viewer{position:absolute;inset:0;width:100%;height:100%;display:block}.loading{position:absolute;inset:0;display:grid;place-items:center;color:#aaa;font-size:12px;letter-spacing:2px;text-align:center;padding:24px;pointer-events:none}
+.hint{position:absolute;left:14px;bottom:12px;color:#999;font-size:10px;letter-spacing:1px;pointer-events:none}
+.panel{border:1px solid #292929;padding:22px;background:#101010}.group{margin-bottom:25px}.options{display:flex;gap:10px;flex-wrap:wrap}
+button{cursor:pointer}.swatch{height:36px;width:36px;border-radius:50%;border:2px solid #777}.swatch[aria-pressed=true]{outline:2px solid white;outline-offset:3px}
+.option{background:#111;color:white;border:1px solid #555;padding:12px;font-size:11px}.option[aria-pressed=true]{background:#fff;color:#000;border-color:#fff}
+.total{font-size:28px;font-weight:900}.cta{display:block;width:100%;background:#fff;color:#000;padding:16px;text-align:center;text-decoration:none;font-size:12px;font-weight:900;letter-spacing:2px;border:1px solid #fff}
+.note{font-size:11px;margin-top:14px}.error{color:#ff9a9a;display:none}
+@media(max-width:700px){.layout{grid-template-columns:1fr}main{padding:25px 16px}.preview{height:340px}}
+</style></head>
+<body><header>OVRBLK / CUSTOM LAB</header><main>
+<div class="tag">TU IDEA. NUESTRAS MANOS.</div><h1>DISEÑA TU<br>PROPIA GORRA.</h1>
+<p class="intro">Personaliza los detalles y crea una pieza que hable por ti.</p>
+<div class="layout"><section><div class="preview" id="preview">
+<canvas id="viewer" aria-label="Vista 3D interactiva de gorra"></canvas><div class="loading" id="loading">CARGANDO MODELO 3D…</div>
+<div class="hint">ARRASTRA PARA GIRAR · RUEDA PARA ZOOM</div></div>
+<p class="note">Modelo 3D interactivo. Arrastra para girar y usa la rueda para acercar o alejar.</p>
+<p class="note error" id="error">No se pudo cargar. Verifica que exista models/Untitled.glb en GitHub.</p></section>
+<section class="panel"><div class="group"><div class="label">01 / COLOR</div><div class="options">
 <button class="swatch" style="background:#171717" aria-label="Negro" aria-pressed="true" data-color="#171717"></button>
 <button class="swatch" style="background:#e7e3d9" aria-label="Hueso" aria-pressed="false" data-color="#e7e3d9"></button>
 <button class="swatch" style="background:#7d2929" aria-label="Vinotinto" aria-pressed="false" data-color="#7d2929"></button>
-<button class="swatch" style="background:#344638" aria-label="Verde oscuro" aria-pressed="false" data-color="#344638"></button>
-</div>
-</div>
-<div class="group">
-<div class="label">02 / ESTAMPADO</div>
-<div class="options" id="prints">
-<button class="option" data-print="none" aria-pressed="true">Sin estampado</button>
-<button class="option" data-print="logo" aria-pressed="false">Logo OVRBLK</button>
-</div>
-</div>
-<div class="group">
-<div class="label">03 / TACHES</div>
-<div class="options" id="studoptions">
-<button class="option" data-studs="no" aria-pressed="true">Sin taches</button>
-<button class="option" data-studs="yes" aria-pressed="false">Añadir taches</button>
-</div>
-</div>
-<div class="group">
-<div class="label">PRECIO DE EJEMPLO</div>
-<div class="total" id="price">$100.000 COP</div>
-<p class="note">Precio provisional. Confirmaremos los valores reales antes de vender.</p>
-</div>
-<a class="cta" id="order" href="#">RESUMIR MI DISEÑO ↗</a>
-<p class="note" id="summary" aria-live="polite">Gorra negra · Sin estampado · Sin taches</p>
-</section>
-</div>
-</main>
-<script>
-const $=id=>document.getElementById(id);
-let color="#171717",print="none",studs="no";
-function update(){
-$("crown").setAttribute("fill",color);
-$("visor").setAttribute("fill",color);
-$("stop1").setAttribute("stop-color",color);
-$("stop2").setAttribute("stop-color",color);
-$("patch").style.display=print==="logo"?"":"none";
-$("studs").style.display=studs==="yes"?"":"none";
-const names={"#171717":"negra","#e7e3d9":"hueso","#7d2929":"vinotinto","#344638":"verde oscuro"};
-const total=100000+(print==="logo"?15000:0)+(studs==="yes"?10000:0);
-$("price").textContent="$"+total.toLocaleString("es-CO")+" COP";
-$("summary").textContent="Gorra "+names[color]+" · "+(print==="logo"?"Logo OVRBLK":"Sin estampado")+" · "+(studs==="yes"?"Con taches":"Sin taches");
-$("order").href="https://wa.me/573227470270?text="+encodeURIComponent("Hola OVRBLK, quiero cotizar este diseño: "+$("summary").textContent+". Precio de referencia: "+$("price").textContent);
-}
-document.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>{color=b.dataset.color;document.querySelectorAll("[data-color]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update()});
-document.querySelectorAll("[data-print]").forEach(b=>b.onclick=()=>{print=b.dataset.print;document.querySelectorAll("[data-print]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update()});
-document.querySelectorAll("[data-studs]").forEach(b=>b.onclick=()=>{studs=b.dataset.studs;document.querySelectorAll("[data-studs]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update()});
-update();
-</script>
-</body>
-</html>
+<button class="swatch" style="background:#344638" aria-label="Verde oscuro" aria-pressed="false" data-color="#344638"></button></div></div>
+<div class="group"><div class="label">02 / ESTAMPADO</div><div class="options">
+<button class="option" data-print="none" aria-pressed="true">Sin estampado</button><button class="option" data-print="logo" aria-pressed="false">Logo OVRBLK</button></div>
+<p class="note">La selección se incluirá en el resumen. La aplicación visual del logo se configura después.</p></div>
+<div class="group"><div class="label">03 / TACHES</div><div class="options">
+<button class="option" data-studs="no" aria-pressed="true">Sin taches</button><button class="option" data-studs="yes" aria-pressed="false">Añadir taches</button></div>
+<p class="note">La selección se incluirá en el resumen del pedido.</p></div>
+<div class="group"><div class="label">PRECIO DE EJEMPLO</div><div class="total" id="price">$100.000 COP</div><p class="note">Precio provisional. Confirmaremos los valores reales antes de vender.</p></div>
+<a class="cta" id="order" href="#" target="_blank" rel="noopener">RESUMIR MI DISEÑO ↗</a>
+<p class="note" id="summary" aria-live="polite">Gorra negra · Sin estampado · Sin taches</p></section></div></main>
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.165.0/build/three.module.js';
+import {OrbitControls} from 'https://unpkg.com/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+import {GLTFLoader} from 'https://unpkg.com/three@0.165.0/examples/jsm/loaders/GLTFLoader.js';
+const $=id=>document.getElementById(id), canvas=$('viewer');
+const scene=new THREE.Scene();scene.background=new THREE.Color('#151515');
+const camera=new THREE.PerspectiveCamera(35,1,.01,1000);camera.position.set(0,.3,4);
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
+scene.add(new THREE.HemisphereLight(0xffffff,0x333333,2.1));
+const key=new THREE.DirectionalLight(0xffffff,3);key.position.set(3,5,4);scene.add(key);
+const fill=new THREE.DirectionalLight(0xffffff,1.4);fill.position.set(-4,2,-3);scene.add(fill);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.06;controls.enablePan=false;controls.minDistance=1.4;controls.maxDistance=7;
+let cap=null,selectedColor='#171717',print='none',studs='no';
+function colorCap(hex){if(!cap)return;const tint=new THREE.Color(hex);cap.traverse(o=>{if(!o.isMesh||!o.material)return;const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(m.color){m.color.copy(tint);m.needsUpdate=true}})})}
+function fit(root){const b=new THREE.Box3().setFromObject(root),s=b.getSize(new THREE.Vector3()),c=b.getCenter(new THREE.Vector3());root.position.sub(c);root.scale.setScalar(2.1/(Math.max(s.x,s.y,s.z)||1));const b2=new THREE.Box3().setFromObject(root),s2=b2.getSize(new THREE.Vector3()),c2=b2.getCenter(new THREE.Vector3());root.position.sub(c2);camera.position.set(0,s2.y*.22+.25,Math.max(s2.x,s2.y,s2.z)*2.3);camera.near=.01;camera.far=100;camera.updateProjectionMatrix();controls.target.set(0,0,0);controls.minDistance=Math.max(.8,s2.length()*.65);controls.maxDistance=s2.length()*4;controls.update()}
+new GLTFLoader().load('./models/Untitled.glb',g=>{cap=g.scene;scene.add(cap);fit(cap);colorCap(selectedColor);$('loading').style.display='none'},undefined,e=>{console.error(e);$('loading').textContent='NO SE PUDO CARGAR LA GORRA 3D';$('error').style.display='block'});
+function resize(){const w=$('preview').clientWidth,h=$('preview').clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
+new ResizeObserver(resize).observe($('preview'));resize();
+function update(){const names={'#171717':'negra','#e7e3d9':'hueso','#7d2929':'vinotinto','#344638':'verde oscuro'},total=100000+(print==='logo'?15000:0)+(studs==='yes'?10000:0);$('price').textContent='$'+total.toLocaleString('es-CO')+' COP';$('summary').textContent='Gorra '+names[selectedColor]+' · '+(print==='logo'?'Logo OVRBLK':'Sin estampado')+' · '+(studs==='yes'?'Con taches':'Sin taches');$('order').href='https://wa.me/573227470270?text='+encodeURIComponent('Hola OVRBLK, quiero cotizar este diseño: '+$('summary').textContent+'. Precio de referencia: '+$('price').textContent)}
+document.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{selectedColor=b.dataset.color;document.querySelectorAll('[data-color]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));colorCap(selectedColor);update()});
+document.querySelectorAll('[data-print]').forEach(b=>b.onclick=()=>{print=b.dataset.print;document.querySelectorAll('[data-print]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));update()});
+document.querySelectorAll('[data-studs]').forEach(b=>b.onclick=()=>{studs=b.dataset.studs;document.querySelectorAll('[data-studs]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));update()});
+function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();update();
+</script></body></html>
