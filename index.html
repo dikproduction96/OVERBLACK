@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OVRBLK CUSTOM LAB</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#050505;color:#fff;font-family:Arial,Helvetica,sans-serif}
+header{padding:24px 6%;border-bottom:1px solid #252525;letter-spacing:4px;font-weight:900}
+main{max-width:1050px;margin:auto;padding:35px 20px}
+.tag{font-size:10px;letter-spacing:3px;color:#999}
+h1{font-size:clamp(32px,6vw,58px);line-height:.95;margin:12px 0}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:28px}
+.preview{background:radial-gradient(ellipse,#292929,#101010 70%);min-height:300px;display:grid;place-items:center;border:1px solid #292929}
+svg{width:100%;max-width:340px}
+.panel{border:1px solid #292929;padding:22px;background:#101010}
+.group{margin-bottom:25px}
+.label{font-size:10px;letter-spacing:2px;color:#aaa;margin-bottom:12px}
+.options{display:flex;gap:10px;flex-wrap:wrap}
+button{cursor:pointer}
+.swatch{height:36px;width:36px;border-radius:50%;border:2px solid #777}
+.swatch[aria-pressed=true]{outline:2px solid white;outline-offset:3px}
+.option{background:#111;color:white;border:1px solid #555;padding:12px;font-size:11px}
+.option[aria-pressed=true]{background:#fff;color:#000;border-color:#fff}
+.total{font-size:28px;font-weight:900}
+.cta{display:block;width:100%;background:#fff;color:#000;padding:16px;text-align:center;text-decoration:none;font-size:12px;font-weight:900;letter-spacing:2px;border:1px solid #fff}
+.note{font-size:11px;color:#999;line-height:1.6;margin-top:14px}
+@media(max-width:650px){.layout{grid-template-columns:1fr}main{padding:25px 16px}.preview{min-height:260px}}
+</style>
+</head>
+<body>
+<header>OVRBLK / CUSTOM LAB</header>
+<main>
+<div class="tag">TU IDEA. NUESTRAS MANOS.</div>
+<h1>DISEÑA TU<br>PROPIA GORRA.</h1>
+<p style="color:#aaa;line-height:1.6">Personaliza los detalles y crea una pieza que hable por ti.</p>
+<div class="layout">
+<section>
+<div class="preview">
+<svg viewBox="0 0 320 230" role="img" aria-label="Vista previa ilustrativa de gorra">
+<defs><linearGradient id="capshade" x1="0" x2="1" y1="0" y2="1"><stop id="stop1" offset="0" stop-color="#303030"/><stop id="stop2" offset="1" stop-color="#080808"/></linearGradient></defs>
+<ellipse cx="160" cy="193" rx="115" ry="12" fill="#000" opacity=".5"/>
+<path id="crown" d="M48 151Q54 79 118 53Q160 32 201 57Q253 84 267 150Q195 174 48 151Z" fill="url(#capshade)" stroke="#aaa"/>
+<path id="visor" d="M48 150Q155 166 267 149Q253 187 157 188Q78 183 48 150Z" fill="#111" stroke="#aaa"/>
+<path d="M160 47L160 158M103 63Q123 103 119 158M211 65Q191 104 200 158" stroke="#888" stroke-opacity=".5" fill="none"/>
+<g id="patch" style="display:none"><path d="M133 96H187V130H133Z" fill="#181818" stroke="#ddd"/><text x="160" y="117" font-size="13" text-anchor="middle" fill="#fff" font-weight="900">OVRBLK</text></g>
+<g id="studs" style="display:none" fill="#ddd"><circle cx="93" cy="131" r="4"/><circle cx="109" cy="137" r="4"/><circle cx="125" cy="141" r="4"/><circle cx="207" cy="139" r="4"/><circle cx="224" cy="133" r="4"/></g>
+</svg>
+</div>
+<p class="note">VISTA PREVIA ILUSTRATIVA. La apariencia final se ajustará a los materiales y técnicas de fabricación reales.</p>
+</section>
+<section class="panel">
+<div class="group">
+<div class="label">01 / COLOR</div>
+<div class="options" id="colors">
+<button class="swatch" style="background:#171717" aria-label="Negro" aria-pressed="true" data-color="#171717"></button>
+<button class="swatch" style="background:#e7e3d9" aria-label="Hueso" aria-pressed="false" data-color="#e7e3d9"></button>
+<button class="swatch" style="background:#7d2929" aria-label="Vinotinto" aria-pressed="false" data-color="#7d2929"></button>
+<button class="swatch" style="background:#344638" aria-label="Verde oscuro" aria-pressed="false" data-color="#344638"></button>
+</div>
+</div>
+<div class="group">
+<div class="label">02 / ESTAMPADO</div>
+<div class="options" id="prints">
+<button class="option" data-print="none" aria-pressed="true">Sin estampado</button>
+<button class="option" data-print="logo" aria-pressed="false">Logo OVRBLK</button>
+</div>
+</div>
+<div class="group">
+<div class="label">03 / TACHES</div>
+<div class="options" id="studoptions">
+<button class="option" data-studs="no" aria-pressed="true">Sin taches</button>
+<button class="option" data-studs="yes" aria-pressed="false">Añadir taches</button>
+</div>
+</div>
+<div class="group">
+<div class="label">PRECIO DE EJEMPLO</div>
+<div class="total" id="price">$100.000 COP</div>
+<p class="note">Precio provisional. Confirmaremos los valores reales antes de vender.</p>
+</div>
+<a class="cta" id="order" href="#">RESUMIR MI DISEÑO ↗</a>
+<p class="note" id="summary" aria-live="polite">Gorra negra · Sin estampado · Sin taches</p>
+</section>
+</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let color="#171717",print="none",studs="no";
+function update(){
+$("crown").setAttribute("fill",color);
+$("visor").setAttribute("fill",color);
+$("stop1").setAttribute("stop-color",color);
+$("stop2").setAttribute("stop-color",color);
+$("patch").style.display=print==="logo"?"":"none";
+$("studs").style.display=studs==="yes"?"":"none";
+const names={"#171717":"negra","#e7e3d9":"hueso","#7d2929":"vinotinto","#344638":"verde oscuro"};
+const total=100000+(print==="logo"?15000:0)+(studs==="yes"?10000:0);
+$("price").textContent="$"+total.toLocaleString("es-CO")+" COP";
+$("summary").textContent="Gorra "+names[color]+" · "+(print==="logo"?"Logo OVRBLK":"Sin estampado")+" · "+(studs==="yes"?"Con taches":"Sin taches");
+$("order").href="https://wa.me/573227470270?text="+encodeURIComponent("Hola OVRBLK, quiero cotizar este diseño: "+$("summary").textContent+". Precio de referencia: "+$("price").textContent);
+}
+document.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>{color=b.dataset.color;document.querySelectorAll("[data-color]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update()});
+document.querySelectorAll("[data-print]").forEach(b=>b.onclick=()=>{print=b.dataset.print;document.querySelectorAll("[data-print]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update()});
+document.querySelectorAll("[data-studs]").forEach(b=>b.onclick=()=>{studs=b.dataset.studs;document.querySelectorAll("[data-studs]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update()});
+update();
+</script>
+</body>
+</html>
