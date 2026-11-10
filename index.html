@@ -379,6 +379,11 @@ gltfLoader.setDRACOLoader(dracoLoader);
       document.querySelectorAll('[data-print]').forEach((button) => {
         button.addEventListener('click', () => {
           print = button.dataset.print;
+          if (print === 'none') {
+            selectedDesign = null;
+            document.querySelectorAll('.design-card').forEach((item) => item.setAttribute('aria-pressed', 'false'));
+            $('designSelected').innerHTML = '<div><small>DISEÑO SELECCIONADO</small><strong id="selectedDesignName">NINGUNO</strong></div>';
+          }
           document.querySelectorAll('[data-print]').forEach((item) => {
             item.setAttribute('aria-pressed', String(item === button));
           });
