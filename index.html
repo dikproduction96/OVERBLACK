@@ -133,7 +133,7 @@
               </div>
             </div>
           </div>
-          <p class="note">La selección se adjunta al pedido. La previsualización física sobre la gorra 3D se habilitará después de calibrar el mapa UV del modelo.</p>
+          <p class="note">El diseño seleccionado se proyecta sobre el panel frontal de la gorra 3D.</p>
         </div>
 
         <div class="group">
@@ -194,6 +194,10 @@ const { DRACOLoader } = await import(
   'three/addons/loaders/DRACOLoader.js'
 );
 
+const { DecalGeometry } = await import(
+  'three/addons/geometries/DecalGeometry.js'
+);
+
       const scene = new THREE.Scene();
       scene.background = new THREE.Color('#151515');
 
@@ -227,6 +231,9 @@ const { DRACOLoader } = await import(
       let selectedColor = '#171717';
       let print = 'none';
       let selectedDesign = null;
+      let activeDecal = null;
+      let decalTexture = null;
+      let decalRequest = 0;
 
       const gothicDesigns = [
         { id: 'GOTHIC_001_OVRBLK_WORDMARK', name: 'OVRBLK WORDMARK' },
@@ -254,6 +261,7 @@ const { DRACOLoader } = await import(
             document.querySelectorAll('[data-print]').forEach((item) => item.setAttribute('aria-pressed', 'false'));
             button.setAttribute('aria-pressed', 'true');
             $('designSelected').innerHTML = '<img alt="' + design.name + '" src="' + design.url + '"><div><small>DISEÑO SELECCIONADO</small><strong id="selectedDesignName">' + design.name + '</strong></div>';
+            applySelectedDesign();
             update();
           });
           grid.appendChild(button);
@@ -262,6 +270,106 @@ const { DRACOLoader } = await import(
 
       renderDesignLibrary();
       let studs = 'no';
+
+      function clearDecal() {
+        if (activeDecal) {
+          scene.remove(activeDecal);
+          activeDecal.geometry.dispose();
+          activeDecal.material.map?.dispose();
+          activeDecal.material.dispose();
+          activeDecal = null;
+        }
+      }
+
+      function applySelectedDesign() {
+        const requestId = ++decalRequest;
+        clearDecal();
+        if (!cap || !selectedDesign) return;
+
+        const targets = [];
+        cap.updateMatrixWorld(true);
+        cap.traverse((object) => {
+          if (!object.isMesh || !/^(cap|cap\\.001)$/i.test(object.name)) return;
+          object.geometry.computeBoundingBox();
+          targets.push(object);
+        });
+        if (!targets.length) {
+          console.warn('OVRBLK: no se encontró la malla frontal cap/cap.001.');
+          return;
+        }
+
+        const targetBounds = new THREE.Box3();
+        targets.forEach((mesh) => targetBounds.union(new THREE.Box3().setFromObject(mesh)));
+        const size = targetBounds.getSize(new THREE.Vector3());
+        const center = targetBounds.getCenter(new THREE.Vector3());
+        const raycaster = new THREE.Raycaster();
+        const candidates = [];
+
+        // Buscar un punto real de la superficie frontal, evitando proyectar sobre el visor.
+        for (const xFactor of [-0.22, 0, 0.22]) {
+          for (const yFactor of [-0.12, 0.08, 0.25]) {
+            const origin = new THREE.Vector3(
+              center.x + size.x * xFactor,
+              center.y + size.y * yFactor,
+              targetBounds.max.z + Math.max(size.z, 0.2) * 3
+            );
+            raycaster.set(origin, new THREE.Vector3(0, 0, -1));
+            const hits = raycaster.intersectObjects(targets, false);
+            if (hits.length) candidates.push(hits[0]);
+          }
+        }
+        if (!candidates.length) {
+          console.warn('OVRBLK: no se encontró la superficie frontal para el estampado.');
+          return;
+        }
+
+        candidates.sort((a, b) => {
+          const da = Math.abs(a.point.x - center.x) + Math.abs(a.point.y - (center.y + size.y * 0.08));
+          const db = Math.abs(b.point.x - center.x) + Math.abs(b.point.y - (center.y + size.y * 0.08));
+          return da - db;
+        });
+        const hit = candidates[0];
+        const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize();
+        if (normal.z < 0) normal.negate();
+
+        const position = hit.point.clone().addScaledVector(normal, 0.006);
+        const orientation = new THREE.Euler().setFromQuaternion(
+          new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
+        );
+        const decalSize = new THREE.Vector3(
+          Math.min(size.x * 0.56, 0.95),
+          Math.min(size.y * 0.48, 0.72),
+          Math.max(size.z * 0.8, 0.18)
+        );
+
+        new THREE.TextureLoader().load(
+          selectedDesign.url,
+          (texture) => {
+            if (requestId !== decalRequest || !selectedDesign) {
+              texture.dispose();
+              return;
+            }
+            texture.colorSpace = THREE.SRGBColorSpace;
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            const geometry = new DecalGeometry(hit.object, position, orientation, decalSize);
+            const material = new THREE.MeshBasicMaterial({
+              map: texture,
+              transparent: true,
+              depthTest: true,
+              depthWrite: false,
+              polygonOffset: true,
+              polygonOffsetFactor: -4,
+              side: THREE.DoubleSide
+            });
+            activeDecal = new THREE.Mesh(geometry, material);
+            activeDecal.renderOrder = 3;
+            scene.add(activeDecal);
+            decalTexture = texture;
+          },
+          undefined,
+          (loadError) => console.error('OVRBLK: no se pudo cargar el PNG del estampado:', loadError)
+        );
+      }
 
       function colorCap(hex) {
         if (!cap) return;
@@ -381,6 +489,8 @@ gltfLoader.setDRACOLoader(dracoLoader);
           print = button.dataset.print;
           if (print === 'none') {
             selectedDesign = null;
+            clearDecal();
+            decalRequest++;
             document.querySelectorAll('.design-card').forEach((item) => item.setAttribute('aria-pressed', 'false'));
             $('designSelected').innerHTML = '<div><small>DISEÑO SELECCIONADO</small><strong id="selectedDesignName">NINGUNO</strong></div>';
           }
