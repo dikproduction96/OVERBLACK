@@ -274,9 +274,16 @@ const { DecalGeometry } = await import(
       function clearDecal() {
         if (activeDecal) {
           scene.remove(activeDecal);
-          activeDecal.geometry.dispose();
-          activeDecal.material.map?.dispose();
-          activeDecal.material.dispose();
+          activeDecal.traverse((object) => {
+            if (object.geometry) object.geometry.dispose();
+            if (object.material) {
+              const materials = Array.isArray(object.material) ? object.material : [object.material];
+              materials.forEach((material) => {
+                material.map?.dispose();
+                material.dispose();
+              });
+            }
+          });
           activeDecal = null;
         }
       }
@@ -294,24 +301,24 @@ const { DecalGeometry } = await import(
           targets.push(object);
         });
         if (!targets.length) {
-          console.warn('OVRBLK: no se encontró la malla frontal cap/cap.001.');
+          console.warn('OVRBLK: no se encontraron los dos paneles frontales.');
           return;
         }
 
-        const targetBounds = new THREE.Box3();
-        targets.forEach((mesh) => targetBounds.union(new THREE.Box3().setFromObject(mesh)));
-        const size = targetBounds.getSize(new THREE.Vector3());
-        const center = targetBounds.getCenter(new THREE.Vector3());
+        // Los dos paneles se tratan como una sola superficie de impresión.
+        const combinedBounds = new THREE.Box3();
+        targets.forEach((mesh) => combinedBounds.union(new THREE.Box3().setFromObject(mesh)));
+        const size = combinedBounds.getSize(new THREE.Vector3());
+        const center = combinedBounds.getCenter(new THREE.Vector3());
         const raycaster = new THREE.Raycaster();
         const candidates = [];
 
-        // Buscar un punto real de la superficie frontal, evitando proyectar sobre el visor.
-        for (const xFactor of [-0.22, 0, 0.22]) {
-          for (const yFactor of [-0.12, 0.08, 0.25]) {
+        for (const xFactor of [-0.3, -0.15, 0, 0.15, 0.3]) {
+          for (const yFactor of [-0.12, 0.05, 0.22]) {
             const origin = new THREE.Vector3(
               center.x + size.x * xFactor,
               center.y + size.y * yFactor,
-              targetBounds.max.z + Math.max(size.z, 0.2) * 3
+              combinedBounds.max.z + Math.max(size.z, 0.2) * 3
             );
             raycaster.set(origin, new THREE.Vector3(0, 0, -1));
             const hits = raycaster.intersectObjects(targets, false);
@@ -319,27 +326,28 @@ const { DecalGeometry } = await import(
           }
         }
         if (!candidates.length) {
-          console.warn('OVRBLK: no se encontró la superficie frontal para el estampado.');
+          console.warn('OVRBLK: no se encontró la cara frontal de los paneles.');
           return;
         }
 
         candidates.sort((a, b) => {
-          const da = Math.abs(a.point.x - center.x) + Math.abs(a.point.y - (center.y + size.y * 0.08));
-          const db = Math.abs(b.point.x - center.x) + Math.abs(b.point.y - (center.y + size.y * 0.08));
-          return da - db;
+          const score = (hit) =>
+            Math.abs(hit.point.x - center.x) +
+            Math.abs(hit.point.y - (center.y + size.y * 0.05));
+          return score(a) - score(b);
         });
         const hit = candidates[0];
         const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize();
         if (normal.z < 0) normal.negate();
 
-        const position = hit.point.clone().addScaledVector(normal, 0.006);
+        const position = hit.point.clone().addScaledVector(normal, 0.008);
         const orientation = new THREE.Euler().setFromQuaternion(
           new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
         );
         const decalSize = new THREE.Vector3(
-          Math.min(size.x * 0.56, 0.95),
-          Math.min(size.y * 0.48, 0.72),
-          Math.max(size.z * 0.8, 0.18)
+          Math.min(size.x * 0.78, 1.25),
+          Math.min(size.y * 0.52, 0.9),
+          Math.max(size.z * 1.2, 0.25)
         );
 
         new THREE.TextureLoader().load(
@@ -351,20 +359,36 @@ const { DecalGeometry } = await import(
             }
             texture.colorSpace = THREE.SRGBColorSpace;
             texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-            const geometry = new DecalGeometry(hit.object, position, orientation, decalSize);
-            const material = new THREE.MeshBasicMaterial({
-              map: texture,
-              transparent: true,
-              depthTest: true,
-              depthWrite: false,
-              polygonOffset: true,
-              polygonOffsetFactor: -4,
-              side: THREE.DoubleSide
+
+            const decalGroup = new THREE.Group();
+            decalGroup.name = 'OVRBLK_FRONT_PANEL_PRINT';
+            targets.forEach((mesh) => {
+              const geometry = new DecalGeometry(mesh, position, orientation, decalSize);
+              if (!geometry.attributes.position || geometry.attributes.position.count === 0) {
+                geometry.dispose();
+                return;
+              }
+              const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                depthTest: true,
+                depthWrite: false,
+                polygonOffset: true,
+                polygonOffsetFactor: -4,
+                side: THREE.DoubleSide
+              });
+              const decalPart = new THREE.Mesh(geometry, material);
+              decalPart.renderOrder = 3;
+              decalGroup.add(decalPart);
             });
-            activeDecal = new THREE.Mesh(geometry, material);
-            activeDecal.renderOrder = 3;
+
+            if (!decalGroup.children.length) {
+              texture.dispose();
+              console.warn('OVRBLK: la proyección no intersectó los paneles frontales.');
+              return;
+            }
+            activeDecal = decalGroup;
             scene.add(activeDecal);
-            decalTexture = texture;
           },
           undefined,
           (loadError) => console.error('OVRBLK: no se pudo cargar el PNG del estampado:', loadError)
