@@ -435,6 +435,7 @@ gltfLoader.setDRACOLoader(dracoLoader);
           scene.add(cap);
           fit(cap);
           colorCap(selectedColor);
+          if (selectedDesign) applySelectedDesign();
           loading.style.display = 'none';
           errorBox.style.display = 'none';
           console.info('OVRBLK: modelo 3D cargado correctamente.');
