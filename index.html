@@ -59,6 +59,17 @@
     }
     .option[aria-pressed="true"] { background: #fff; color: #000; border-color: #fff; }
     .total { font-size: 28px; font-weight: 900; }
+    .design-library { margin-top: 12px; }
+    .design-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+    .design-card { background: #090909; border: 1px solid #333; color: #fff; padding: 8px; text-align: left; min-width: 0; }
+    .design-card[aria-pressed="true"] { border-color: #fff; box-shadow: 0 0 0 1px #fff inset; }
+    .design-card img { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: contain; background: #181818; margin-bottom: 8px; }
+    .design-card span { display: block; font-size: 10px; letter-spacing: 1px; line-height: 1.4; }
+    .design-selected { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px; background: #080808; border: 1px solid #333; }
+    .design-selected img { width: 54px; height: 54px; object-fit: contain; background: #181818; }
+    .design-selected small { color: #aaa; display: block; font-size: 10px; margin-bottom: 4px; }
+    .design-selected strong { font-size: 11px; letter-spacing: 1px; }
+
     .cta {
       display: block; width: 100%; background: #fff; color: #000; padding: 16px;
       text-align: center; text-decoration: none; font-size: 12px;
@@ -108,12 +119,21 @@
         </div>
 
         <div class="group">
-          <div class="label">02 / ESTAMPADO</div>
+          <div class="label">02 / BANCO GRÁFICO — GOTHIC</div>
+          <p class="note">Selecciona uno de los 8 diseños del archivo OVRBLK.</p>
           <div class="options">
-            <button class="option" data-print="none" aria-pressed="true">Sin estampado</button>
-            <button class="option" data-print="logo" aria-pressed="false">Logo OVRBLK</button>
+            <button class="option" data-print="none" aria-pressed="true">Sin diseño</button>
           </div>
-          <p class="note">La selección se incluirá en el resumen. La aplicación visual del logo se configura después.</p>
+          <div class="design-library">
+            <div class="design-grid" id="designGrid" aria-label="Diseños Gothic"></div>
+            <div class="design-selected" id="designSelected">
+              <div>
+                <small>DISEÑO SELECCIONADO</small>
+                <strong id="selectedDesignName">NINGUNO</strong>
+              </div>
+            </div>
+          </div>
+          <p class="note">La selección se adjunta al pedido. La previsualización física sobre la gorra 3D se habilitará después de calibrar el mapa UV del modelo.</p>
         </div>
 
         <div class="group">
@@ -206,6 +226,41 @@ const { DRACOLoader } = await import(
       let cap = null;
       let selectedColor = '#171717';
       let print = 'none';
+      let selectedDesign = null;
+
+      const gothicDesigns = [
+        { id: 'GOTHIC_001_OVRBLK_WORDMARK', name: 'OVRBLK WORDMARK' },
+        { id: 'GOTHIC_002_SPIKED_CROSS', name: 'SPIKED CROSS' },
+        { id: 'GOTHIC_003_THORN_SKULL', name: 'THORN SKULL' },
+        { id: 'GOTHIC_004_FALLEN_ANGEL', name: 'FALLEN ANGEL' },
+        { id: 'GOTHIC_005_THORN_CROWN', name: 'THORN CROWN' },
+        { id: 'GOTHIC_006_VIPER_EMBLEM', name: 'VIPER EMBLEM' },
+        { id: 'GOTHIC_007_OCCULT_SIGIL', name: 'OCCULT SIGIL' },
+        { id: 'GOTHIC_008_BLACK_METAL_EMBLEM', name: 'BLACK METAL EMBLEM' }
+      ].map((design) => ({ ...design, url: 'https://raw.githubusercontent.com/dikproduction96/OVERBLACK/main/design-archive/01-GOTHIC/' + design.id + '.png' }));
+
+      function renderDesignLibrary() {
+        const grid = $('designGrid');
+        grid.innerHTML = '';
+        gothicDesigns.forEach((design) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'design-card';
+          button.setAttribute('aria-pressed', String(selectedDesign?.id === design.id));
+          button.innerHTML = '<img loading="lazy" alt="" src="' + design.url + '"><span>' + design.name + '</span>';
+          button.addEventListener('click', () => {
+            selectedDesign = design;
+            print = 'design';
+            document.querySelectorAll('[data-print]').forEach((item) => item.setAttribute('aria-pressed', 'false'));
+            button.setAttribute('aria-pressed', 'true');
+            $('designSelected').innerHTML = '<img alt="' + design.name + '" src="' + design.url + '"><div><small>DISEÑO SELECCIONADO</small><strong id="selectedDesignName">' + design.name + '</strong></div>';
+            update();
+          });
+          grid.appendChild(button);
+        });
+      }
+
+      renderDesignLibrary();
       let studs = 'no';
 
       function colorCap(hex) {
@@ -298,16 +353,16 @@ gltfLoader.setDRACOLoader(dracoLoader);
           '#7d2929': 'vinotinto',
           '#344638': 'verde oscuro'
         };
-        const total = 100000 + (print === 'logo' ? 15000 : 0) + (studs === 'yes' ? 10000 : 0);
+        const total = 100000 + (print === 'design' ? 15000 : 0) + (studs === 'yes' ? 10000 : 0);
 
         $('price').textContent = '$' + total.toLocaleString('es-CO') + ' COP';
         $('summary').textContent = 'Gorra ' + names[selectedColor] + ' · ' +
-          (print === 'logo' ? 'Logo OVRBLK' : 'Sin estampado') + ' · ' +
+          (selectedDesign ? 'Diseño ' + selectedDesign.name : 'Sin diseño') + ' · ' +
           (studs === 'yes' ? 'Con taches' : 'Sin taches');
 
         $('order').href = 'https://wa.me/573227470270?text=' +
           encodeURIComponent('Hola OVRBLK, quiero cotizar este diseño: ' +
-          $('summary').textContent + '. Precio de referencia: ' + $('price').textContent);
+          $('summary').textContent + (selectedDesign ? '. Archivo: ' + selectedDesign.url : '') + '. Precio de referencia: ' + $('price').textContent);
       }
 
       document.querySelectorAll('[data-color]').forEach((button) => {
