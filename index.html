@@ -313,41 +313,43 @@ const { DecalGeometry } = await import(
         const raycaster = new THREE.Raycaster();
         const candidates = [];
 
-        for (const xFactor of [-0.3, -0.15, 0, 0.15, 0.3]) {
+        // El visor apunta hacia -X en este modelo; proyectamos desde el frente hacia +X.
+        for (const zFactor of [-0.3, -0.15, 0, 0.15, 0.3]) {
           for (const yFactor of [-0.12, 0.05, 0.22]) {
             const origin = new THREE.Vector3(
-              center.x + size.x * xFactor,
+              combinedBounds.min.x - Math.max(size.x, 0.2) * 3,
               center.y + size.y * yFactor,
-              combinedBounds.max.z + Math.max(size.z, 0.2) * 3
+              center.z + size.z * zFactor
             );
-            raycaster.set(origin, new THREE.Vector3(0, 0, -1));
+            raycaster.set(origin, new THREE.Vector3(1, 0, 0));
             const hits = raycaster.intersectObjects(targets, false);
             if (hits.length) candidates.push(hits[0]);
           }
         }
         if (!candidates.length) {
-          console.warn('OVRBLK: no se encontró la cara frontal de los paneles.');
+          console.warn('OVRBLK: no se encontró la superficie frontal de la corona.');
           return;
         }
 
         candidates.sort((a, b) => {
           const score = (hit) =>
-            Math.abs(hit.point.x - center.x) +
+            Math.abs(hit.point.z - center.z) +
             Math.abs(hit.point.y - (center.y + size.y * 0.05));
           return score(a) - score(b);
         });
         const hit = candidates[0];
         const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize();
-        if (normal.z < 0) normal.negate();
+        if (normal.x > 0) normal.negate();
 
         const position = hit.point.clone().addScaledVector(normal, 0.008);
         const orientation = new THREE.Euler().setFromQuaternion(
           new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
         );
+        // Para una proyección frontal (-X), el ancho de la imagen cruza el eje Z.
         const decalSize = new THREE.Vector3(
-          Math.min(size.x * 0.78, 1.25),
+          Math.min(size.z * 0.82, 1.25),
           Math.min(size.y * 0.52, 0.9),
-          Math.max(size.z * 1.2, 0.25)
+          Math.max(size.x * 1.2, 0.25)
         );
 
         new THREE.TextureLoader().load(
